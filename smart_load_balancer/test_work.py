@@ -1,3 +1,4 @@
+import threading
 import time
 
 from smart_load_balancer.work import Work
@@ -28,3 +29,15 @@ def test_work_start():
     wrk.work()
     assert wrk.name == "olia"
     assert done
+
+
+def test_wait():
+    wrk = Work(name="olia", data="data", work_func=work_test_func)
+
+    def run():
+        time.sleep(0.1)
+        wrk.done()
+
+    threading.Thread(target=run, daemon=True).start()
+    res = wrk.wait()
+    assert res.name == "olia"
