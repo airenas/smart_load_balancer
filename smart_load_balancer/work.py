@@ -21,4 +21,4 @@ class Work:
         return self.wait_queue.get()
 
     def work(self):
-        self.work_func(self.name, self.data)
+        return self.work_func(self.name, self.data)

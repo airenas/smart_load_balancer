@@ -5,7 +5,7 @@ import threading
 
 class Worker:
     def __init__(self, worker_id, work_mutex, add_work_func):
-        logging.info("Init worker %d" % id)
+        logging.info("Init worker %d" % worker_id)
         self.id = worker_id
         self.working = False
         self.working_mutex = work_mutex
@@ -15,13 +15,14 @@ class Worker:
 
     def start(self):
         threading.Thread(target=self.work_func, daemon=True).start()
-        logging.info("Started worker %d" % id)
+        logging.info("Started worker %d" % self.id)
 
     def waiting(self):
         return not self.working
 
     def work_func(self):
-        for wrk in self.works_queue:
+        while True:
+            wrk = self.works_queue.get()
             logging.info("Worker %d got work %s" % (self.id, wrk.name))
             try:
                 with self.working_mutex:

@@ -35,7 +35,8 @@ class Balancer:
         return self.works_queue.put(wrk, block=True)
 
     def queue_func(self):
-        for wrk in self.works_queue:
+        while True:
+            wrk = self.works_queue.get()
             name = wrk.name
             with self.works_lock:
                 q = self.works_map.get(name)
