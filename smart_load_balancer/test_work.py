@@ -26,7 +26,7 @@ def test_work_start():
         assert data == "data"
 
     wrk = Work(name="olia", data="data", work_func=work_func)
-    wrk.work()
+    wrk.work(0)
     assert wrk.name == "olia"
     assert done
 

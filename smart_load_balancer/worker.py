@@ -10,7 +10,7 @@ class Worker:
         self.working = False
         self.working_mutex = work_mutex
         self.add_work_func = add_work_func
-        self.works_queue = queue.Queue(maxsize=1)
+        self.works_queue = queue.Queue(maxsize=10)
         self.name = None
 
     def start(self):
@@ -18,7 +18,7 @@ class Worker:
         logging.info("Started worker %d" % self.id)
 
     def waiting(self):
-        return not self.working
+        return not self.working and self.works_queue.empty()
 
     def work_func(self):
         while True:
@@ -28,7 +28,7 @@ class Worker:
                 with self.working_mutex:
                     self.name = wrk.name
                     self.working = True
-                wrk.res = wrk.work()
+                wrk.res = wrk.work(self.id)
                 logging.info("Worker %d completed %s" % (self.id, wrk.name))
             except Exception as err:
                 logging.error("Worker %d failed completing %s" % (self.id, wrk.name))
