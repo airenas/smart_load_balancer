@@ -4,7 +4,7 @@ import threading
 
 
 class Worker:
-    def __init__(self, worker_id, work_mutex, add_work_func):
+    def __init__(self, worker_id, work_mutex=None, add_work_func=None):
         logging.info("Init worker %d" % worker_id)
         self.id = worker_id
         self.working = False

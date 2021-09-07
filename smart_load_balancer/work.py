@@ -4,7 +4,7 @@ import time
 
 
 class Work:
-    def __init__(self, name, data, work_func, added=time.time()):
+    def __init__(self, name, data=None, work_func=None, added=time.time()):
         logging.info("Init work at %d" % added)
         self.added = added
         self.name = name

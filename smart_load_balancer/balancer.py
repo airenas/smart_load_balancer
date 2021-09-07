@@ -1,26 +1,20 @@
 import logging
 import queue
 import threading
-import time
 from collections import deque
 
+from smart_load_balancer.strategy.strategy import GroupsByNameWithTime
 from smart_load_balancer.worker import Worker
 
 
-def has_other(workers, name):
-    for w in workers:
-        if w.name == name:
-            return True
-    return False
-
-
 class Balancer:
-    def __init__(self, wrk_count=1):
+    def __init__(self, wrk_count=1, strategy=GroupsByNameWithTime()):
         logging.info("Init balancer with %d workers" % wrk_count)
         self.works_count = wrk_count
         self.works_queue = queue.Queue(maxsize=500)
         self.works_lock = threading.Lock()
         self.waiting = 0
+        self.strategy = strategy
         with self.works_lock:
             self.works_map = dict()
             self.workers = list()
@@ -52,23 +46,10 @@ class Balancer:
                     self.try_add_work(w)
 
     def try_add_work(self, w):
-        t = time.time()
-        best_v = 10000000000.0
-        best_wrk = None
         logging.info("Try add work - works waiting %d" % self.waiting)
-        for key in self.works_map:
-            wrk = self.works_map[key][0]
-            v = wrk.added - t
-            if wrk.name == w.name:
-                v = v - 10
-            elif has_other(self.workers, wrk.name):
-                v = v + 1
-            logging.info("Value %f for %s" % (v, wrk.name))
-            if v < best_v:
-                best_v = v
-                best_wrk = wrk
+        best_wrk = self.strategy.get_work(w, self.works_map, self.workers)
         if best_wrk is not None:
-            logging.info("Best value %f for %s" % (best_v, best_wrk.name))
+            logging.info("Best work selected %s" % best_wrk.name)
             wrk = self.works_map[best_wrk.name].popleft()
             self.waiting -= 1
             if not self.works_map[wrk.name]:
@@ -87,3 +68,12 @@ class Balancer:
                 if b.name and w.name is None:  # other available worker
                     b = w
         return b
+
+
+def add_work_dic(works, wrk):
+    name = wrk.name
+    q = works.get(name)
+    if q is None:
+        q = deque()
+        works[name] = q
+    q.append(wrk)
