@@ -1,10 +1,14 @@
 import logging
 import queue
 import time
+from typing import Any, Callable, Dict
+
+from smart_load_balancer.worker import WorkerInfo
 
 
 class Work:
-    def __init__(self, name, data=None, work_func=None, added=time.time()):
+    def __init__(self, name: str, data: Any = None, work_func: Callable[[str, Any, Dict], Any] = None,
+                 added=time.time()):
         logging.info("Init work at %d" % added)
         self.added = added
         self.name = name
@@ -21,6 +25,6 @@ class Work:
     def wait(self):
         return self.wait_queue.get()
 
-    def work(self, worker_id):
-        self.worker_id = worker_id
-        return self.work_func(self.name, self.data)
+    def work(self, worker: WorkerInfo) -> Any:
+        self.worker_id = worker.id
+        return self.work_func(self.name, self.data, worker.data)

@@ -2,9 +2,10 @@ import threading
 import time
 
 from smart_load_balancer.work import Work
+from smart_load_balancer.worker import WorkerInfo
 
 
-def work_test_func(name, data):
+def work_test_func(name, data, wrk_data):
     print("%s " % name)
 
 
@@ -19,14 +20,14 @@ def test_work_init():
 def test_work_start():
     done = False
 
-    def work_func(name, data):
+    def work_func(name, data, wrk_data):
         nonlocal done
         done = True
         assert name == "olia"
         assert data == "data"
 
     wrk = Work(name="olia", data="data", work_func=work_func)
-    wrk.work(0)
+    wrk.work(WorkerInfo())
     assert wrk.name == "olia"
     assert done
 

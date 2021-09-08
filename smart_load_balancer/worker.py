@@ -1,10 +1,20 @@
 import logging
 import queue
 import threading
+from typing import Callable, Any
 
 
-class Worker:
-    def __init__(self, worker_id, work_mutex=None, add_work_func=None):
+class WorkerInfo:
+    def __init__(self):
+        pass
+
+    data = dict()
+    name = None
+    id = 0
+
+
+class Worker(WorkerInfo):
+    def __init__(self, worker_id: int, work_mutex=threading.Lock, add_work_func: Callable[[WorkerInfo], Any] = None):
         logging.info("Init worker %d" % worker_id)
         self.id = worker_id
         self.working = False
@@ -28,7 +38,7 @@ class Worker:
                 with self.working_mutex:
                     self.name = wrk.name
                     self.working = True
-                wrk.res = wrk.work(self.id)
+                wrk.res = wrk.work(self)
                 logging.info("Worker %d completed %s" % (self.id, wrk.name))
             except Exception as err:
                 logging.error("Worker %d failed completing %s" % (self.id, wrk.name))

@@ -19,7 +19,7 @@ def test_balancer_add_wrk():
     assert len(bal.workers) == 1
     bal.start()
 
-    def work_test_func(name, data):
+    def work_test_func(name, data, wrk_data):
         return name
 
     wrk = Work(name="olia", data=None, work_func=work_test_func)
@@ -35,7 +35,7 @@ def test_balancer_add_several_wrk(caplog):
 
     wc = 0
 
-    def work_test_func(name, data):
+    def work_test_func(name, data, wrk_data):
         nonlocal wc
         wc += 1
         time.sleep(0.1)
@@ -64,7 +64,7 @@ def test_balancer_several_workers(caplog):
     bal = Balancer(wrk_count=2)
     bal.start()
 
-    def work_test_func(name, data):
+    def work_test_func(name, data, wrk_data):
         time.sleep(0.1)
         return name
 
@@ -93,7 +93,7 @@ def test_balancer_prefer_old(caplog):
 
     wc = 0
 
-    def work_test_func(name, data):
+    def work_test_func(name, data, wrk_data):
         nonlocal wc
         wc += 1
         time.sleep(0.1)
@@ -124,7 +124,7 @@ def test_balancer_prefer_empty(caplog):
     bal.workers[0].name = "olia"
     bal.start()
 
-    def work_test_func(name, data):
+    def work_test_func(name, data, wrk_data):
         return name
 
     t = time.time()

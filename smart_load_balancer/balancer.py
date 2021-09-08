@@ -3,12 +3,12 @@ import queue
 import threading
 from collections import deque
 
-from smart_load_balancer.strategy.strategy import GroupsByNameWithTime
+from smart_load_balancer.strategy.strategy import GroupsByNameWithTime, Strategy
 from smart_load_balancer.worker import Worker
 
 
 class Balancer:
-    def __init__(self, wrk_count=1, strategy=GroupsByNameWithTime()):
+    def __init__(self, wrk_count=1, strategy: Strategy = GroupsByNameWithTime()):
         logging.info("Init balancer with %d workers" % wrk_count)
         self.works_count = wrk_count
         self.works_queue = queue.Queue(maxsize=500)
