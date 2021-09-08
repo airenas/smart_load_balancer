@@ -6,15 +6,15 @@ from typing import Callable, Any
 
 class WorkerInfo:
     def __init__(self):
+        self.data = dict()
+        self.name = None
+        self.id = 0
         pass
-
-    data = dict()
-    name = None
-    id = 0
 
 
 class Worker(WorkerInfo):
     def __init__(self, worker_id: int, work_mutex=threading.Lock, add_work_func: Callable[[WorkerInfo], Any] = None):
+        super(Worker, self).__init__()
         logging.info("Init worker %d" % worker_id)
         self.id = worker_id
         self.working = False
