@@ -9,7 +9,7 @@ git_version = subprocess.run(["git", "rev-list", "--count", "HEAD"], stdout=subp
     'utf-8').strip()
 
 setup(
-    name='SmartLoadBalancer',
+    name='smart_load_balancer',
     url='https://github.com/airenas/smart_load_balancer',
     author='Airenas Vaičiūnas',
     author_email='airenass@gmail.com',
