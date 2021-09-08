@@ -6,10 +6,12 @@ from collections import deque
 from smart_load_balancer.strategy.strategy import GroupsByNameWithTime, Strategy
 from smart_load_balancer.worker import Worker
 
+logger = logging.getLogger(__name__)
+
 
 class Balancer:
     def __init__(self, wrk_count=1, strategy: Strategy = GroupsByNameWithTime()):
-        logging.info("Init balancer with %d workers" % wrk_count)
+        logger.info("Init balancer with %d workers" % wrk_count)
         self.works_count = wrk_count
         self.works_queue = queue.Queue(maxsize=500)
         self.works_lock = threading.Lock()
@@ -33,7 +35,7 @@ class Balancer:
         while True:
             wrk = self.works_queue.get()
             name = wrk.name
-            logging.info("Register work for %s" % wrk.name)
+            logger.info("Register work for %s" % wrk.name)
             with self.works_lock:
                 q = self.works_map.get(name)
                 if q is None:
@@ -46,15 +48,15 @@ class Balancer:
                     self.try_add_work(w)
 
     def try_add_work(self, w):
-        logging.info("Try add work - works waiting %d" % self.waiting)
+        logger.info("Try add work - works waiting %d" % self.waiting)
         best_wrk = self.strategy.get_work(w, self.works_map, self.workers)
         if best_wrk is not None:
-            logging.info("Best work selected %s" % best_wrk.name)
+            logger.info("Best work selected %s" % best_wrk.name)
             wrk = self.works_map[best_wrk.name].popleft()
             self.waiting -= 1
             if not self.works_map[wrk.name]:
                 del self.works_map[wrk.name]
-            logging.info("Pass work %s to worker %d" % (wrk.name, w.id))
+            logger.info("Pass work %s to worker %d" % (wrk.name, w.id))
             w.works_queue.put(wrk)
 
     def get_best_free_worker(self, name):

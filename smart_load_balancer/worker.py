@@ -3,6 +3,8 @@ import queue
 import threading
 from typing import Callable, Any
 
+logger = logging.getLogger(__name__)
+
 
 class WorkerInfo:
     def __init__(self):
@@ -15,7 +17,7 @@ class WorkerInfo:
 class Worker(WorkerInfo):
     def __init__(self, worker_id: int, work_mutex=threading.Lock, add_work_func: Callable[[WorkerInfo], Any] = None):
         super(Worker, self).__init__()
-        logging.info("Init worker %d" % worker_id)
+        logger.info("Init worker %d" % worker_id)
         self.id = worker_id
         self.working = False
         self.working_mutex = work_mutex
@@ -25,7 +27,7 @@ class Worker(WorkerInfo):
 
     def start(self):
         threading.Thread(target=self.work_func, daemon=True).start()
-        logging.info("Started worker %d" % self.id)
+        logger.info("Started worker %d" % self.id)
 
     def waiting(self):
         return not self.working and self.works_queue.empty()
@@ -33,16 +35,16 @@ class Worker(WorkerInfo):
     def work_func(self):
         while True:
             wrk = self.works_queue.get()
-            logging.info("Worker %d got work %s" % (self.id, wrk.name))
+            logger.info("Worker %d got work %s" % (self.id, wrk.name))
             try:
                 with self.working_mutex:
                     self.name = wrk.name
                     self.working = True
                 wrk.res = wrk.work(self)
-                logging.info("Worker %d completed %s" % (self.id, wrk.name))
+                logger.info("Worker %d completed %s" % (self.id, wrk.name))
             except Exception as err:
-                logging.error("Worker %d failed completing %s" % (self.id, wrk.name))
-                logging.error(err)
+                logger.error("Worker %d failed completing %s" % (self.id, wrk.name))
+                logger.error(err)
                 wrk.err = err
             finally:
                 wrk.done()
