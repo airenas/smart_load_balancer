@@ -13,7 +13,7 @@ setup(
     url='https://github.com/airenas/smart_load_balancer',
     author='Airenas Vaičiūnas',
     author_email='airenass@gmail.com',
-    packages=['smart_load_balancer'],
+    packages=['smart_load_balancer', 'smart_load_balancer.strategy'],
     # install_requires=['numpy'],
     version='0.1.' + git_version,
     license='BSD-3',
