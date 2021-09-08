@@ -40,8 +40,8 @@ class GroupsByNameWithTime:
             v = wrk.added - t
             if wrk.name != worker.name:
                 v = v + self.name_penalty
-            elif has_other(workers, wrk.name):
-                v = v + self.other_workers_exist_penalty
+                if has_other(workers, wrk.name):
+                    v = v + self.other_workers_exist_penalty
             if v < best_v:
                 best_v = v
                 best_wrk = wrk

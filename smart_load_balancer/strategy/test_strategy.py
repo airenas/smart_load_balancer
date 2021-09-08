@@ -50,14 +50,12 @@ def test_group_by_name_time(caplog):
 
 def test_group_by_name_other_worker(caplog):
     works = dict()
-    add_work_dic(works, Work(name="olia", data="w1", added=9))
+    add_work_dic(works, Work(name="olia", data="w1", added=21))
     add_work_dic(works, Work(name="olia1", data="w2", added=21))
-    add_work_dic(works, Work(name="olia2", data="w3", added=22))
     worker = Worker(0)
-    worker.name = "olia1"
-    worker2 = Worker(0)
-    worker2.name = "olia1"
-    wrk = GroupsByNameWithTime().get_work(worker, works, [Worker(0)])
+    worker2 = Worker(1)
+    worker2.name = "olia"
+    wrk = GroupsByNameWithTime().get_work(worker, works, [])
     assert wrk.data == "w1"
-    wrk = GroupsByNameWithTime(name_penalty=20).get_work(worker, works, [Worker(0)])
-    assert wrk.data == "w3"
+    wrk = GroupsByNameWithTime().get_work(worker, works, [worker, worker2])
+    assert wrk.data == "w2"
