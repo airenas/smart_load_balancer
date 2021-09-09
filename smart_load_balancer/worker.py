@@ -35,11 +35,11 @@ class Worker(WorkerInfo):
     def work_func(self):
         while True:
             wrk = self.works_queue.get()
-            logger.info("Worker %d got work %s" % (self.id, wrk.name))
+            self.working = True   # do not use lock for boolean
+            logger.info("Worker %d got work %s. Queue empty: %s" % (self.id, wrk.name, self.works_queue.empty()))
             try:
                 with self.working_mutex:
                     self.name = wrk.name
-                    self.working = True
                 wrk.res = wrk.work(self)
                 logger.info("Worker %d completed %s" % (self.id, wrk.name))
             except Exception as err:
@@ -48,6 +48,7 @@ class Worker(WorkerInfo):
                 wrk.err = err
             finally:
                 wrk.done()
+                self.working = False
                 with self.working_mutex:
-                    self.working = False
-                    self.add_work_func(self)
+                    if self.works_queue.empty():  # add only if no works pending
+                        self.add_work_func(self)
