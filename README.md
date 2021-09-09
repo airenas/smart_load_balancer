@@ -45,7 +45,7 @@ The sample of the `work_process_function` used above:
 
 ```python
 def work_process_function(model_name, some_data, workers_data):
-    # it is a synchronized function - no race here if you dont't use any other global object
+    # it is a synchronized function - no race here if you don't use any other global object
     # workers_data: dict - is a state of a worker
     previous_model_name = workers_data.get("name")
     model = workers_data.get("model")
@@ -70,7 +70,7 @@ You can implement a new strategy. See the implemented ones as a sample: [smart_l
 ```python
 balancer = Balancer(wrk_count=1, strategy=MyNewStrategy())
 ```
-`Strategy` class must implement one method `get_work(worker: Worker, works: Dict[str, Deque[Work]], workers: List[Worker])`. `worker` - is the worker wanting for a job, `works` - a dict of all available jobs, `workers` - a list of all workers including `worker`. You must select the best work from `works` and return it or None if no jobs for the `worker`.
+`Strategy` class must implement one method `get_work(worker: Worker, works: Dict[str, Deque[Work]], workers: List[Worker])`. `worker` - is the worker wanting for a job, `works` - a dict of all available jobs, `workers` - a list of all workers including the `worker`. You must select the best work from `works` and return it or None if there is no job for the `worker`.
 
 ---
 
