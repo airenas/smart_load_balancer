@@ -28,9 +28,9 @@ class Worker(WorkerInfo):
         super(Worker, self).__init__()
         logger.info("Init worker %d" % worker_id)
         self.id = worker_id
-        self.working_mutex = work_mutex
+        self._working_mutex = work_mutex
         self.finish_work_func = finish_work_func
-        self.works_queue = queue.Queue(maxsize=1)
+        self._works_queue = queue.Queue(maxsize=1)
 
     def start(self):
         threading.Thread(target=self.work_func, daemon=True).start()
@@ -41,13 +41,13 @@ class Worker(WorkerInfo):
 
     def work_func(self):
         while True:
-            wrk = self.works_queue.get()
+            wrk = self._works_queue.get()
             if self.name != wrk.name:
                 self.wrk_switch += 1
                 self.wrk_done_last = 0
                 logger.warning("Worker %d switch from '%s' to '%s'" % (self.id, self.name, wrk.name))
             try:
-                with self.working_mutex:
+                with self._working_mutex:
                     self.name = wrk.name
                 wrk.res = wrk.work(self)
                 logger.info("Worker %d completed %s" % (self.id, wrk.name))
@@ -59,7 +59,7 @@ class Worker(WorkerInfo):
                 wrk.done()
                 self.wrk_done += 1
                 self.wrk_done_last += 1
-                with self.working_mutex:
+                with self._working_mutex:
                     self.finish_work_func(self)
 
     def add_work(self, wrk):
@@ -67,4 +67,4 @@ class Worker(WorkerInfo):
         logger.info("Worker %d info (all:%d, switch:%d, last:%d)" % (
             self.id, self.wrk_done, self.wrk_switch, self.wrk_done_last))
         self.working = True
-        self.works_queue.put(wrk)
+        self._works_queue.put(wrk)
