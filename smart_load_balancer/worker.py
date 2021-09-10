@@ -1,42 +1,51 @@
 import logging
 import queue
 import threading
+from abc import ABC, abstractmethod
 from typing import Callable, Any
 
 logger = logging.getLogger(__name__)
 
 
-class WorkerInfo:
+class WorkerInfo(ABC):
     def __init__(self):
         self.data = dict()
         self.name = None
         self.id = 0
+        self.wrk_done = 0
+        self.wrk_switch = 0
+        self.wrk_done_last = 0  # last wrk done after switch
+        self.working = False  # managed from balancer
+        pass
+
+    @abstractmethod
+    def add_work(self, wrk):
         pass
 
 
 class Worker(WorkerInfo):
-    def __init__(self, worker_id: int, work_mutex=threading.Lock, add_work_func: Callable[[WorkerInfo], Any] = None):
+    def __init__(self, worker_id: int, work_mutex=threading.Lock, finish_work_func: Callable[[WorkerInfo], Any] = None):
         super(Worker, self).__init__()
         logger.info("Init worker %d" % worker_id)
         self.id = worker_id
-        self.working = False
         self.working_mutex = work_mutex
-        self.add_work_func = add_work_func
-        self.works_queue = queue.Queue(maxsize=10)
-        self.name = None
+        self.finish_work_func = finish_work_func
+        self.works_queue = queue.Queue(maxsize=1)
 
     def start(self):
         threading.Thread(target=self.work_func, daemon=True).start()
         logger.info("Started worker %d" % self.id)
 
     def waiting(self):
-        return not self.working and self.works_queue.empty()
+        return not self.working
 
     def work_func(self):
         while True:
             wrk = self.works_queue.get()
-            self.working = True   # do not use lock for boolean
-            logger.info("Worker %d got work %s. Queue empty: %s" % (self.id, wrk.name, self.works_queue.empty()))
+            if self.name != wrk.name:
+                self.wrk_switch += 1
+                self.wrk_done_last = 0
+                logger.warning("Worker %d switch from '%s' to '%s'" % (self.id, self.name, wrk.name))
             try:
                 with self.working_mutex:
                     self.name = wrk.name
@@ -48,7 +57,13 @@ class Worker(WorkerInfo):
                 wrk.err = err
             finally:
                 wrk.done()
-                self.working = False
+                self.wrk_done += 1
+                self.wrk_done_last += 1
                 with self.working_mutex:
-                    if self.works_queue.empty():  # add only if no works pending
-                        self.add_work_func(self)
+                    self.finish_work_func(self)
+
+    def add_work(self, wrk):
+        logger.info("Worker %d got work %s" % (self.id, wrk.name))
+        logger.info("Worker %d info (all:%d, switch:%d, last:%d)" % (
+            self.id, self.wrk_done, self.wrk_switch, self.wrk_done_last))
+        self.works_queue.put(wrk)

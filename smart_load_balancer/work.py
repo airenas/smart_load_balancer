@@ -7,10 +7,11 @@ from smart_load_balancer.worker import WorkerInfo
 
 logger = logging.getLogger(__name__)
 
+
 class Work:
     def __init__(self, name: str, data: Any = None, work_func: Callable[[str, Any, Dict], Any] = None,
                  added=time.time()):
-        logger.info("Init work at %d" % added)
+        logger.info("Init work '%s' at %d" % (name, added))
         self.added = added
         self.name = name
         self.work_func = work_func

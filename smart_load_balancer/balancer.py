@@ -4,7 +4,7 @@ import threading
 from collections import deque
 
 from smart_load_balancer.strategy.strategy import GroupsByNameWithTime, Strategy
-from smart_load_balancer.worker import Worker
+from smart_load_balancer.worker import Worker, WorkerInfo
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,8 @@ class Balancer:
             self.works_map = dict()
             self.workers = list()
             for i in range(wrk_count):
-                self.workers.append(Worker(worker_id=i, work_mutex=self.works_lock, add_work_func=self.try_add_work))
+                self.workers.append(
+                    Worker(worker_id=i, work_mutex=self.works_lock, add_work_func=self.finish_and_add_work))
 
     def start(self):
         threading.Thread(target=self.queue_func, daemon=True).start()
@@ -29,7 +30,7 @@ class Balancer:
             w.start()
 
     def add_wrk(self, wrk):
-        return self.works_queue.put(wrk, block=True)
+        return self.works_queue.put(wrk)
 
     def queue_func(self):
         while True:
@@ -43,21 +44,27 @@ class Balancer:
                     self.works_map[name] = q
                 q.append(wrk)
                 self.waiting += 1
+                logger.info("Register work for %s - %d in line" % (wrk.name, len(q)))
                 w = self.get_best_free_worker(name)
                 if w is not None:
-                    self.try_add_work(w)
+                    self.finish_and_add_work(w)
 
-    def try_add_work(self, w):
+    def finish_and_add_work(self, worker: WorkerInfo):
+        """
+        Tries add a new work into workers queue
+        No race condition here
+        """
+        worker.working = False
         logger.info("Try add work - works waiting %d" % self.waiting)
-        best_wrk = self.strategy.get_work(w, self.works_map, self.workers)
+        best_wrk = self.strategy.get_work(worker, self.works_map, self.workers)
         if best_wrk is not None:
             logger.info("Best work selected %s" % best_wrk.name)
             wrk = self.works_map[best_wrk.name].popleft()
             self.waiting -= 1
             if not self.works_map[wrk.name]:
                 del self.works_map[wrk.name]
-            logger.info("Pass work %s to worker %d" % (wrk.name, w.id))
-            w.works_queue.put(wrk)
+            logger.info("Pass work %s to worker %d" % (wrk.name, worker.id))
+            worker.add_work(wrk)
 
     def get_best_free_worker(self, name):
         b = None

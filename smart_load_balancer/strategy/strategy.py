@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Deque
 
 from smart_load_balancer.work import Work
-from smart_load_balancer.worker import Worker
+from smart_load_balancer.worker import Worker, WorkerInfo
 
 
 def has_other(workers, name):
@@ -16,7 +16,7 @@ def has_other(workers, name):
 
 class Strategy(ABC):
     @abstractmethod
-    def get_work(self, worker: Worker, works: Dict[str, Deque[Work]], workers: List[Worker]) -> Work:
+    def get_work(self, worker: WorkerInfo, works: Dict[str, Deque[Work]], workers: List[Worker]) -> Work:
         pass
 
 
@@ -24,7 +24,7 @@ class Oldest(Strategy):
     def __init__(self):
         pass
 
-    def get_work(self, worker, works, workers):
+    def get_work(self, worker, works, workers) -> Work:
         best_v = sys.maxsize
         best_wrk = None
         for key in works:
@@ -42,7 +42,7 @@ class GroupsByNameWithTime(Strategy):
         self.other_workers_exist_penalty = other_workers_exist_penalty
         pass
 
-    def get_work(self, worker, works, workers):
+    def get_work(self, worker, works, workers) -> Work:
         t = time.time()
         best_v = sys.maxsize
         best_wrk = None
