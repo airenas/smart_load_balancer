@@ -66,4 +66,5 @@ class Worker(WorkerInfo):
         logger.info("Worker %d got work %s" % (self.id, wrk.name))
         logger.info("Worker %d info (all:%d, switch:%d, last:%d)" % (
             self.id, self.wrk_done, self.wrk_switch, self.wrk_done_last))
+        self.working = True
         self.works_queue.put(wrk)

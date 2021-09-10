@@ -22,7 +22,7 @@ class Balancer:
             self.workers = list()
             for i in range(wrk_count):
                 self.workers.append(
-                    Worker(worker_id=i, work_mutex=self.works_lock, add_work_func=self.finish_and_add_work))
+                    Worker(worker_id=i, work_mutex=self.works_lock, finish_work_func=self.finish_and_add_work))
 
     def start(self):
         threading.Thread(target=self.queue_func, daemon=True).start()

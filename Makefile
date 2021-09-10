@@ -8,4 +8,4 @@ git-push-tag:
 	git push origin --tags
 
 test:
-	pytest
+	pytest -v --log-level=INFO

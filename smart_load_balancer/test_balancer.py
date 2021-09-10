@@ -28,8 +28,7 @@ def test_balancer_add_wrk():
     assert res.res == "olia"
 
 
-def test_balancer_add_several_wrk(caplog):
-    caplog.set_level(logging.INFO)
+def test_balancer_add_several_wrk():
     bal = Balancer(wrk_count=1)
     bal.start()
 
