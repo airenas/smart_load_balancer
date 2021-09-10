@@ -7,13 +7,6 @@ from smart_load_balancer.work import Work
 from smart_load_balancer.worker import Worker, WorkerInfo
 
 
-def has_other(workers, name):
-    for w in workers:
-        if w.name == name:
-            return True
-    return False
-
-
 class Strategy(ABC):
     @abstractmethod
     def get_work(self, worker: WorkerInfo, works: Dict[str, Deque[Work]], workers: List[Worker]) -> Work:
@@ -38,8 +31,8 @@ class Oldest(Strategy):
 
 class GroupsByNameWithTime(Strategy):
     def __init__(self, name_penalty=10, other_workers_exist_penalty=1):
-        self.name_penalty = name_penalty
-        self.other_workers_exist_penalty = other_workers_exist_penalty
+        self._name_penalty = name_penalty
+        self._other_workers_exist_penalty = other_workers_exist_penalty
         pass
 
     def get_work(self, worker, works, workers) -> Work:
@@ -50,10 +43,43 @@ class GroupsByNameWithTime(Strategy):
             wrk = works[key][0]
             v = wrk.added - t
             if wrk.name != worker.name:
-                v = v + self.name_penalty
-                if has_other(workers, wrk.name):
-                    v = v + self.other_workers_exist_penalty
+                v = v + self._name_penalty
+                if _has_other(workers, wrk.name, worker):
+                    v = v + self._other_workers_exist_penalty
             if v < best_v:
                 best_v = v
                 best_wrk = wrk
         return best_wrk
+
+
+class GroupsByNameWithTimeNoSameWorker(Strategy):
+    """
+    Strategy does not pass a work to an empty worker if there is one with the same name
+    """
+
+    def __init__(self, name_penalty=10):
+        self._name_penalty = name_penalty
+        pass
+
+    def get_work(self, worker, works, workers) -> Work:
+        t = time.time()
+        best_v = sys.maxsize
+        best_wrk = None
+        for key in works:
+            wrk = works[key][0]
+            v = wrk.added - t
+            if wrk.name != worker.name:
+                v = v + self._name_penalty
+                if _has_other(workers, wrk.name, worker):
+                    continue
+            if v < best_v:
+                best_v = v
+                best_wrk = wrk
+        return best_wrk
+
+
+def _has_other(workers: List[WorkerInfo], name: str, worker: WorkerInfo) -> bool:
+    for w in workers:
+        if w.name == name and w != worker:
+            return True
+    return False
