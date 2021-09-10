@@ -14,7 +14,7 @@ This is the problem the package tries to solve. It registers jobs by names, when
 
 ## Installation
 ```bash
-pip install git+git://github.com/airenas/smart_load_balancer.git@v0.1.17#egg=smart_load_balancer
+pip install git+git://github.com/airenas/smart_load_balancer.git@v0.1.26#egg=smart_load_balancer
 ```
 
 ## Usage
