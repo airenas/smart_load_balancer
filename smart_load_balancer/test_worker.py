@@ -2,15 +2,16 @@ import threading
 import time
 
 from smart_load_balancer.work import Work
-from smart_load_balancer.worker import Worker
+from smart_load_balancer.worker import Worker, WorkerInfo
+
+
+def __fake_add_func(wrk: WorkerInfo):
+    wrk.working = False
 
 
 def test_worker_init():
-    def add_func(wrk):
-        pass
-
     l = threading.Lock()
-    wrk = Worker(worker_id=10, work_mutex=l, add_work_func=add_func)
+    wrk = Worker(worker_id=10, work_mutex=l, finish_work_func=__fake_add_func)
     assert wrk.id == 10
     assert wrk.working == False
 
@@ -28,14 +29,15 @@ def test_worker_start():
     wrk = Work(name="olia", data=None, work_func=work_test_func)
     wrk2 = Work(name="olia2", data=None, work_func=work_test_func)
 
-    def add_func(w):
+    def add_func(_w: WorkerInfo):
+        _w.working = False
         if count < 2:
-            w.works_queue.put(wrk2)
+            _w.add_work(wrk2)
 
     l = threading.Lock()
-    w = Worker(worker_id=10, work_mutex=l, add_work_func=add_func)
+    w = Worker(worker_id=10, work_mutex=l, finish_work_func=add_func)
     with l:
-        w.works_queue.put(wrk)
+        w.add_work(wrk)
     w.start()
     time.sleep(0.1)
     assert w.working == True
@@ -57,14 +59,10 @@ def test_worker_return_error():
         raise err
 
     wrk = Work(name="olia", data=None, work_func=work_test_func)
-
-    def add_func(w):
-        pass
-
     l = threading.Lock()
-    w = Worker(worker_id=10, work_mutex=l, add_work_func=add_func)
+    w = Worker(worker_id=10, work_mutex=l, finish_work_func=__fake_add_func)
     with l:
-        w.works_queue.put(wrk)
+        w.add_work(wrk)
     w.start()
     res = wrk.wait()
     assert res.res is None
@@ -80,15 +78,12 @@ def test_worker_keeps_data():
 
     wrk = Work(name="olia", data=None, work_func=work_test_func)
 
-    def add_func(w):
-        pass
-
     l = threading.Lock()
-    w = Worker(worker_id=10, work_mutex=l, add_work_func=add_func)
+    w = Worker(worker_id=10, work_mutex=l, finish_work_func=__fake_add_func)
     with l:
-        w.works_queue.put(wrk)
+        w.add_work(wrk)
     w.start()
-    res = wrk.wait()
+    wrk.wait()
     assert w.data["name"] == "olia"
     assert w.data["model"] == "model"
 
@@ -98,7 +93,6 @@ def test_worker_keeps_data():
 
     wrk = Work(name="olia", data=None, work_func=work_test_func2)
     with l:
-        w.works_queue.put(wrk)
-    w.start()
+        w.add_work(wrk)
     res = wrk.wait()
     assert res.err is None

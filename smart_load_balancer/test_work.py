@@ -5,6 +5,12 @@ from smart_load_balancer.work import Work
 from smart_load_balancer.worker import WorkerInfo
 
 
+class __TestWorker(WorkerInfo):
+
+    def add_work(self, wrk):
+        pass
+
+
 def work_test_func(name, data, wrk_data):
     print("%s " % name)
 
@@ -27,7 +33,7 @@ def test_work_start():
         assert data == "data"
 
     wrk = Work(name="olia", data="data", work_func=work_func)
-    wrk.work(WorkerInfo())
+    wrk.work(__TestWorker())
     assert wrk.name == "olia"
     assert done
 

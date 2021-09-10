@@ -8,15 +8,15 @@ from smart_load_balancer.work import Work
 def test_balancer_init(caplog):
     # caplog.set_level(logging.INFO)
     bal = Balancer(wrk_count=1)
-    assert len(bal.workers) == 1
+    assert len(bal._Balancer__workers) == 1
 
     bal = Balancer(wrk_count=3)
-    assert len(bal.workers) == 3
+    assert len(bal._Balancer__workers) == 3
 
 
 def test_balancer_add_wrk():
     bal = Balancer(wrk_count=1)
-    assert len(bal.workers) == 1
+    assert len(bal._Balancer__workers) == 1
     bal.start()
 
     def work_test_func(name, data, wrk_data):
@@ -85,8 +85,7 @@ def test_balancer_several_workers(caplog):
     assert res4.worker_id == 1
 
 
-def test_balancer_prefer_old(caplog):
-    caplog.set_level(logging.INFO)
+def test_balancer_prefer_old():
     bal = Balancer(wrk_count=1)
     bal.start()
 
@@ -120,7 +119,7 @@ def test_balancer_prefer_old(caplog):
 def test_balancer_prefer_empty(caplog):
     caplog.set_level(logging.INFO)
     bal = Balancer(wrk_count=2)
-    bal.workers[0].name = "olia"
+    bal._Balancer__workers[0].name = "olia"
     bal.start()
 
     def work_test_func(name, data, wrk_data):
