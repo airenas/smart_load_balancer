@@ -10,11 +10,11 @@ Imagine a stateful service. It loads a model into GPU and keeps it in a GPU memo
 
 Example: a lot of jobs arrive at the same time. Models of the jobs are: `m1, m2, m1, m2, m1, m2`. Let's ignore the time of the job processing which is `0.01s`. If we process the jobs in the order of their arrival then it will take `5s(load m1) + 5s(load m2) + ... = 30s.`. But if we will do `m1, m1, m1, m2, m2, m2` then it will take `10s`.  
 
-This is the problem the package tries to solve. It registers jobs by names, when a worker completes a job and want a new one, then the code provides the best job trying to avoid switching of a state for a worker.    
+This is the problem the package tries to solve. It registers jobs by names, when a worker completes a job and wants a new one, then the code provides the best job trying to avoid switching of a state for a worker.    
 
 ## Installation
 ```bash
-pip install git+git://github.com/airenas/smart_load_balancer.git@v0.1.26#egg=smart_load_balancer
+pip install git+git://github.com/airenas/smart_load_balancer.git@v0.2.30#egg=smart_load_balancer
 ```
 
 ## Usage
