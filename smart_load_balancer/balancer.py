@@ -43,7 +43,7 @@ class Balancer:
             with self.__works_lock:
                 add_work_dic(self.__works_map, wrk)
                 self.waiting += 1
-                logger.info("Register work for %s - %d in line" % (wrk.name, len(self.__works_map[name])))
+                logger.info("Register work for %s(%d) - %d in line" % (wrk.name, wrk.priority, len(self.__works_map[name])))
                 w = self.__get_best_free_worker(name)
                 if w is not None:
                     self.__finish_and_add_work(w)
