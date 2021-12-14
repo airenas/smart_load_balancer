@@ -31,3 +31,6 @@ class Work:
     def work(self, worker: WorkerInfo) -> Any:
         self.worker_id = worker.id
         return self.work_func(self.name, self.data, worker.data)
+
+    def __lt__(self, other):
+        return (self.priority + self.added) < (other.priority + other.added)
