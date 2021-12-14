@@ -15,7 +15,7 @@ setup(
     author_email='airenass@gmail.com',
     packages=['smart_load_balancer', 'smart_load_balancer.strategy'],
     # install_requires=['numpy'],
-    version='0.1.' + git_version,
+    version='0.2.' + git_version,
     license='BSD-3',
     description='Stateful workers load balancer',
     long_description=long_description,
