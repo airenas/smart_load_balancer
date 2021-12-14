@@ -1,7 +1,8 @@
 import logging
 import time
+from typing import Tuple, List, Dict
 
-from smart_load_balancer.balancer import Balancer
+from smart_load_balancer.balancer import Balancer, add_work_dic, pop_work_dic
 from smart_load_balancer.work import Work
 
 
@@ -130,3 +131,45 @@ def test_balancer_prefer_empty(caplog):
     bal.add_wrk(wrk)
     res = wrk.wait()
     assert res.worker_id == 1
+
+
+def test_add_wrk(caplog):
+    caplog.set_level(logging.INFO)
+    wrks: Dict[str, List[Tuple[float, Work]]] = dict()
+    add_work_dic(wrks, Work(name="olia", data=1, added=10, priority=1))
+    add_work_dic(wrks, Work(name="olia", data=2, added=10, priority=2))
+    add_work_dic(wrks, Work(name="olia", data=3, added=10, priority=3))
+    add_work_dic(wrks, Work(name="olia1", data=4, added=10, priority=1))
+    assert len(wrks["olia"]) == 3
+    assert wrks["olia"][0][0] == 11
+    assert wrks["olia"][0][1].data == 1
+    assert wrks["olia"][1][1].data == 2
+    assert wrks["olia"][2][1].data == 3
+    assert len(wrks["olia1"]) == 1
+    assert wrks["olia1"][0][0] == 11
+    assert wrks["olia1"][0][1].data == 4
+
+
+def test_add_pop_wrk_empty(caplog):
+    caplog.set_level(logging.INFO)
+    wrks: Dict[str, List[Tuple[float, Work]]] = dict()
+    add_work_dic(wrks, Work(name="olia", data=1, added=10, priority=1))
+    add_work_dic(wrks, Work(name="olia1", data=2, added=10, priority=2))
+    assert len(wrks) == 2
+    pop_work_dic(wrks, "olia")
+    pop_work_dic(wrks, "olia1")
+    assert len(wrks) == 0
+
+
+def test_add_pop_wrk(caplog):
+    caplog.set_level(logging.INFO)
+    wrks: Dict[str, List[Tuple[float, Work]]] = dict()
+    add_work_dic(wrks, Work(name="olia", data=1, added=10, priority=1))
+    add_work_dic(wrks, Work(name="olia", data=2, added=10, priority=0))
+    add_work_dic(wrks, Work(name="olia", data=3, added=10, priority=-1))
+    wrk = pop_work_dic(wrks, "olia")
+    assert wrk.data == 3
+    wrk = pop_work_dic(wrks, "olia")
+    assert wrk.data == 2
+    wrk = pop_work_dic(wrks, "olia")
+    assert wrk.data == 1

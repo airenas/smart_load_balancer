@@ -18,9 +18,15 @@ def work_test_func(name, data, wrk_data):
 def test_work_init():
     wrk = Work(name="olia", data=None, work_func=work_test_func)
     assert wrk.name == "olia"
+    assert wrk.priority == 0
     t = time.time()
     wrk = Work(name="olia", data=None, work_func=work_test_func, added=t)
     assert wrk.added == t
+    wrk = Work(name="olia", data=None, work_func=work_test_func, priority=-100)
+    assert wrk.priority == -100
+    wrk = Work(name="olia", data=None, work_func=work_test_func, priority=100)
+    assert wrk.priority == 100
+
 
 
 def test_work_start():

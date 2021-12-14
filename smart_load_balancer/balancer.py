@@ -1,8 +1,9 @@
+import heapq
 import logging
 import queue
 import threading
-from collections import deque
 from queue import Queue
+from typing import List, Dict, Tuple
 
 from smart_load_balancer.strategy.strategy import GroupsByNameWithTime, Strategy
 from smart_load_balancer.work import Work
@@ -20,7 +21,7 @@ class Balancer:
         self.waiting = 0
         self.strategy = strategy
         with self.__works_lock:
-            self.__works_map = dict()
+            self.__works_map: Dict[str, List[Tuple[float, Work]]] = dict()
             self.__workers = list()
             for i in range(wrk_count):
                 self.__workers.append(
@@ -57,11 +58,9 @@ class Balancer:
         best_wrk = self.strategy.get_work(worker, self.__works_map, self.__workers)
         if best_wrk is not None:
             logger.info("Best work selected %s" % best_wrk.name)
-            wrk = self.__works_map[best_wrk.name].popleft()
+            wrk = pop_work_dic(self.__works_map, best_wrk.name)
             self.waiting -= 1
-            if not self.__works_map[wrk.name]:
-                del self.__works_map[wrk.name]
-            logger.info("Pass work %s to worker %d" % (wrk.name, worker.id))
+            logger.info("Pass work %s(%.d) to worker %d" % (wrk.name, wrk.priority, worker.id))
             worker.add_work(wrk)
 
     def __get_best_free_worker(self, name):
@@ -77,10 +76,19 @@ class Balancer:
         return b
 
 
-def add_work_dic(works, wrk):
+def add_work_dic(works: Dict[str, List[Tuple[float, Work]]], wrk: Work):
     name = wrk.name
-    q = works.get(name)
-    if q is None:
-        q = deque()
-        works[name] = q
-    q.append(wrk)
+    wl = works.get(name)
+    if wl is None:
+        wl = list()
+        works[name] = wl
+    p = wrk.added + wrk.priority
+    heapq.heappush(wl, (p, wrk))
+
+
+def pop_work_dic(works: Dict[str, List[Tuple[float, Work]]], name: str) -> Work:
+    wl = works.get(name)
+    _, wrk = heapq.heappop(wl)
+    if not works[name]:
+        del works[name]
+    return wrk
