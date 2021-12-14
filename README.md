@@ -33,7 +33,7 @@ balancer.start()
 ```python
 from smart_load_balancer.balancer import Work
 
-work = Work(name=model_name, data=some_data, work_func=work_process_function)
+work = Work(name=model_name, data=some_data, work_func=work_process_function, priority=10)
 balancer.add_wrk(work)
 w_res = work.wait()    # waits until a job is processed
 if w_res.err is not None:
@@ -70,7 +70,7 @@ You can implement a new strategy. See the implemented ones as a sample: [smart_l
 ```python
 balancer = Balancer(wrk_count=1, strategy=MyNewStrategy())
 ```
-`Strategy` class must implement one method `get_work(worker: Worker, works: Dict[str, Deque[Work]], workers: List[Worker]) -> Work`. `worker` - is the worker wanting for a job, `works` - a dict of all available jobs, `workers` - a list of all workers including the `worker`. You must select the best work from `works` and return it or None if there is no job for the `worker`.
+`Strategy` class must implement one method `get_work(worker: Worker, works: Dict[str, List[Tuple[float, Work]]], workers: List[Worker]) -> Work`. `worker` - is the worker wanting for a job, `works` - a dict of all available jobs, `workers` - a list of all workers including the `worker`. You must select the best work from `works` and return it or None if there is no job for the `worker`.
 
 ---
 
