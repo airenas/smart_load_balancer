@@ -198,3 +198,14 @@ def test_add_pop_wrk(caplog):
     assert wrk.data == 2
     wrk = pop_work_dic(wrks, "olia")
     assert wrk.data == 1
+
+
+def test_add_wrk_default_value(caplog):
+    caplog.set_level(logging.INFO)
+    wrks: Dict[str, List[Tuple[float, Work]]] = dict()
+    for i in range(100):
+        add_work_dic(wrks, Work(name="olia", data=i))
+        time.sleep(0.0001)
+    for i in range(100):
+        wrk = pop_work_dic(wrks, "olia")
+        assert wrk.data == i

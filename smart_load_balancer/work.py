@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 class Work:
     def __init__(self, name: str, data: Any = None, work_func: Callable[[str, Any, Dict], Any] = None,
-                 added: float = time.time(), priority: int = 0):
+                 added: float = None, priority: int = 0):
+        if added is None:
+            added = time.time()
         logger.info("Init work '%s' at %d" % (name, added))
         self.added: float = added
         self.priority: int = priority
