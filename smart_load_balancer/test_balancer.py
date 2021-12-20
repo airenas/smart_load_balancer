@@ -150,6 +150,18 @@ def test_add_wrk(caplog):
     assert wrks["olia1"][0][1].data == 4
 
 
+def test_add_wrk_float(caplog):
+    caplog.set_level(logging.INFO)
+    wrks: Dict[str, List[Tuple[float, Work]]] = dict()
+    add_work_dic(wrks, Work(name="olia", data=1, added=10.01, priority=1))
+    add_work_dic(wrks, Work(name="olia", data=2, added=10.005, priority=1))
+    assert len(wrks["olia"]) == 2
+    assert wrks["olia"][0][0] == 11.005
+    assert wrks["olia"][0][1].data == 2
+    assert wrks["olia"][1][0] == 11.01
+    assert wrks["olia"][1][1].data == 1
+
+
 def test_add_pop_wrk_empty(caplog):
     caplog.set_level(logging.INFO)
     wrks: Dict[str, List[Tuple[float, Work]]] = dict()
@@ -159,6 +171,19 @@ def test_add_pop_wrk_empty(caplog):
     pop_work_dic(wrks, "olia")
     pop_work_dic(wrks, "olia1")
     assert len(wrks) == 0
+
+
+def test_add_pop_wrk_float(caplog):
+    caplog.set_level(logging.INFO)
+    wrks: Dict[str, List[Tuple[float, Work]]] = dict()
+    add_work_dic(wrks, Work(name="olia", data=1, added=0.001, priority=1))
+    add_work_dic(wrks, Work(name="olia", data=2, added=0.0001, priority=1))
+    add_work_dic(wrks, Work(name="olia", data=3, added=0.00011, priority=1))
+    add_work_dic(wrks, Work(name="olia", data=4, added=0.000105, priority=1))
+    wrk = pop_work_dic(wrks, "olia")
+    assert wrk.data == 2
+    wrk = pop_work_dic(wrks, "olia")
+    assert wrk.data == 4
 
 
 def test_add_pop_wrk(caplog):

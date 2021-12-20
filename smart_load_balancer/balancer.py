@@ -88,7 +88,8 @@ def add_work_dic(works: Dict[str, List[Tuple[float, Work]]], wrk: Work):
 
 def pop_work_dic(works: Dict[str, List[Tuple[float, Work]]], name: str) -> Work:
     wl = works.get(name)
-    _, wrk = heapq.heappop(wl)
+    p, wrk = heapq.heappop(wl)
+    logger.info("Pop work priority %.4f" % p)
     if not works[name]:
         del works[name]
     return wrk
